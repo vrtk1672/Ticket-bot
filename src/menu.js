@@ -6,7 +6,7 @@
  */
 
 const readline = require('readline');
-const { execSync } = require('child_process');
+const { spawn }    = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -120,9 +120,15 @@ function patchConfig(patches) {
 
 // ─── Show config ──────────────────────────────────────────────────────────────
 function showConfig() {
-  // eslint-disable-next-line no-eval
-  delete require.cache[require.resolve('./config')];
-  const cfg = require('./config');
+  // Always read fresh from disk (never from Node require-cache)
+  const src = fs.readFileSync(path.join(__dirname, 'config.js'), 'utf8');
+  const cfg = {};
+  // Quick-parse key: value pairs from the module.exports object
+  const pairs = src.match(/(?<=\s)(\w+)\s*:\s*([^,\n]+)/g) || [];
+  for (const pair of pairs) {
+    const [k, ...rest] = pair.trim().split(/\s*:\s*/);
+    try { cfg[k.trim()] = JSON.parse(rest.join(':').trim()); } catch { cfg[k.trim()] = rest.join(':').trim(); }
+  }
   console.log('\n' + c(C.bold + C.cyan, '  ── Current Config ─────────────────────────────────'));
   console.log(c(C.yellow, `  url:                  `) + c(C.white, cfg.url));
   console.log(c(C.yellow, `  seats:                `) + c(C.white, JSON.stringify(cfg.seats)));
@@ -133,13 +139,15 @@ function showConfig() {
   console.log(c(C.cyan,   '  ─────────────────────────────────────────────────\n'));
 }
 
-// ─── Spawn bot in same process space ─────────────────────────────────────────
+// ─── Spawn bot as a FRESH child process (no require-cache issues) ────────────
 function spawnBot(rl) {
-  // Close menu readline before bot opens its own
   rl.close();
-  // Re-require fresh copy of bot
-  delete require.cache[require.resolve('./bot')];
-  require('./bot');
+  const botPath = path.join(__dirname, 'bot.js');
+  const child = spawn(process.execPath, [botPath], {
+    stdio: 'inherit',   // share stdin/stdout/stderr with this terminal
+    cwd: path.join(__dirname, '..')
+  });
+  child.on('exit', (code) => process.exit(code ?? 0));
 }
 
 // ─── Main loop ────────────────────────────────────────────────────────────────
