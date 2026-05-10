@@ -1,0 +1,13 @@
+{
+  "name": "ticket-bot",
+  "version": "1.0.0",
+  "description": "Safe Playwright automation for ticketing website",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/menu.js",
+    "codegen": "playwright codegen \"https://ecom.biggerpicture.ai/site/1292/seats?code=1292-132372&saleChannelCode=web&languageid=he_IL\""
+  },
+  "dependencies": {
+    "playwright": "^1.43.0"
+  }
+}

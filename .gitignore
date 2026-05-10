@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Debug screenshots
+debug/
+
+# Session state (URL saved by the menu - do not commit)
+.bot_session.json
+
+# Environment / secrets
+.env
+.env.local
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Playwright browsers cache (optional – saves bandwidth when cloning)
+# Uncomment if you want cloners to download browsers themselves:
+# playwright-browsers/
